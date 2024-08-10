@@ -1,33 +1,35 @@
-import {Terminal as XTerminal} from '@xterm/xterm'
-import { useEffect, useRef } from 'react'
-import socket from '../socket'
-import '@xterm/xterm/css/xterm.css'
+import { Terminal as XTerminal } from "@xterm/xterm";
+import { useEffect, useRef } from "react";
+import socket from "../socket";
+
+import "@xterm/xterm/css/xterm.css";
 
 const Terminal = () => {
-    const TerminalRef = useRef();
-    const isRendered = useRef(false)
+  const terminalRef = useRef();
+  const isRendered = useRef(false);
 
-    useEffect(() => {
-        if(isRendered.current) return;
-        isRendered.current = true;
-        const term = new XTerminal({
-            rows: 20,
-        });
-        term.open(TerminalRef.current)
+  useEffect(() => {
+    if (isRendered.current) return;
+    isRendered.current = true;
 
-        term.onData((data) => {
-            socket.emit('terminal:write', data)
-        });
+    const term = new XTerminal({
+      rows: 20,
+    });
 
-        socket.on('terminal:data', (data) => {
-            term.write(data);
-        })
+    term.open(terminalRef.current);
 
-    }, [])
+    term.onData((data) => {
+      socket.emit("terminal:write", data);
+    });
 
-    return (
-    <div ref={TerminalRef} id='terminal'/>
-)
-}
+    function onTerminalData(data) {
+      term.write(data);
+    }
+
+    socket.on("terminal:data", onTerminalData);
+  }, []);
+
+  return <div ref={terminalRef} id="terminal" />;
+};
 
 export default Terminal;
